@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Sprint DSA</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="principal">
+  <h1>Monitor de Missão Espacial</h1>
+
+  <nav>
+    <button onclick="abrirPainel('painel-inserir')">1. Inserir Dados</button>
+    <button onclick="abrirPainel('painel-status')">2. Ver Status</button>
+    <button onclick="abrirPainel('painel-analise')">3. Análise</button>
+    <button onclick="abrirPainel('painel-historico')">4. Histórico</button>
+    <button onclick="encerrar()">5. Encerrar</button>
+  </nav>
+
+  <div id="log"></div>
+
+  <div class="panel" id="painel-inserir">
+    <h2>Inserir Dados dos Sensores</h2>
+
+    <label>Temperatura (°C):</label>
+    <input type="number" id="inp-temp" placeholder="Ex: 75">
+
+    <label>Nível de Energia (%):</label>
+    <input type="number" id="inp-energia" placeholder="0 a 100" min="0" max="100">
+
+    <label>Comunicação:</label>
+    <select id="inp-comm">
+      <option value="1">1 — Ativa</option>
+      <option value="0">0 — Sem comunicação</option>
+    </select>
+
+    <button class="enviar" onclick="registrarLeitura()">Registrar</button>
+  </div>
+
+  <div class="panel" id="painel-status">
+    <h2>Status Atual</h2>
+    <div id="status-conteudo"><p>Nenhuma leitura ainda.</p></div>
+  </div>
+
+  <div class="panel" id="painel-analise">
+    <h2>Análise do Sistema</h2>
+    <div id="analise-conteudo"><p>Nenhuma leitura ainda.</p></div>
+  </div>
+
+  <div class="panel" id="painel-historico">
+    <h2>Histórico de Leituras</h2>
+    <div id="historico-conteudo"><p>Nenhuma leitura ainda.</p></div>
+  </div>
+</div>
+
+<script>
+  const historico = [];
+
+  function log(msg, tipo) {
+    const div = document.getElementById('log');
+    const p = document.createElement('p');
+    p.textContent = '> ' + msg;
+    p.className = tipo || '';
+    div.appendChild(p);
+    div.scrollTop = div.scrollHeight;
+  }
+
+  function abrirPainel(id) {
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('ativo'));
+    document.getElementById(id).classList.add('ativo');
+
+    if (id === 'painel-status')   renderStatus();
+    if (id === 'painel-analise')  renderAnalise();
+    if (id === 'painel-historico') renderHistorico();
+  }
+
+  function registrarLeitura() {
+    const tempVal    = document.getElementById('inp-temp').value.trim();
+    const energiaVal = document.getElementById('inp-energia').value.trim();
+    const comm       = parseInt(document.getElementById('inp-comm').value);
+
+    if (tempVal === '' || energiaVal === '') {
+      log('ERRO: Preencha todos os campos.', 'erro');
+      return;
+    }
+
+    const temp    = parseFloat(tempVal);
+    const energia = parseFloat(energiaVal);
+
+    if (isNaN(temp) || isNaN(energia)) {
+      log('ERRO: Valores inválidos.', 'erro');
+      return;
+    }
+    if (energia < 0 || energia > 100) {
+      log('ERRO: Energia deve ser entre 0 e 100.', 'erro');
+      return;
+    }
+
+    const alertas = [];
+    if (temp    > 80) alertas.push('SUPERAQUECIMENTO');
+    if (energia < 20) alertas.push('ECONOMIA DE ENERGIA');
+    if (comm   === 0) alertas.push('FALHA DE COMUNICAÇÃO');
+
+    const hora = new Date().toLocaleTimeString('pt-BR');
+    historico.push({ temp, energia, comm, alertas, hora });
+
+    if (alertas.length === 0) {
+      log(`Leitura #${historico.length} registrada — NOMINAL`, 'normal');
+    } else {
+      alertas.forEach(a => log(`ALERTA: ${a}`, 'erro'));
+    }
+
+    document.getElementById('inp-temp').value    = '';
+    document.getElementById('inp-energia').value = '';
+  }
+
+  function renderStatus() {
+    const el = document.getElementById('status-conteudo');
+    if (historico.length === 0) { el.innerHTML = '<p>Nenhuma leitura ainda.</p>'; return; }
+
+    const u = historico[historico.length - 1];
+    const temAlerta = u.alertas.length > 0;
+
+    el.innerHTML = `
+      <p><strong>Última leitura:</strong> ${u.hora}</p>
+      <table>
+        <tr><th>Sensor</th><th>Valor</th><th>Situação</th></tr>
+        <tr>
+          <td>Temperatura</td>
+          <td>${u.temp} °C</td>
+          <td>${u.temp > 80 ? 'SUPERAQUECIMENTO' : u.temp > 60 ? 'Elevada' : 'Normal'}</td>
+        </tr>
+        <tr>
+          <td>Energia</td>
+          <td>${u.energia.toFixed(1)} %</td>
+          <td>${u.energia < 20 ? 'CRÍTICO' : u.energia < 40 ? 'Baixa' : 'Normal'}</td>
+        </tr>
+        <tr>
+          <td>Comunicação</td>
+          <td>${u.comm}</td>
+          <td>${u.comm === 0 ? 'FALHA' : 'Ativa'}</td>
+        </tr>
+        <tr>
+          <td>Missão</td>
+          <td colspan="2">${temAlerta ? 'ALERTAS ATIVOS' : 'NOMINAL'}</td>
+        </tr>
+      </table>
+      ${temAlerta
+        ? `<div class="alerta"><strong>Alertas:</strong> ${u.alertas.join(' | ')}</div>`
+        : `<div class="ok">Sistema operando normalmente.</div>`}
+    `;
+  }
+
+  function renderAnalise() {
+    const el = document.getElementById('analise-conteudo');
+    if (historico.length === 0) { el.innerHTML = '<p>Nenhuma leitura ainda.</p>'; return; }
+
+    const temps    = historico.map(r => r.temp);
+    const energias = historico.map(r => r.energia);
+
+    const mediaTemp    = (temps.reduce((a,b) => a+b, 0) / temps.length).toFixed(1);
+    const mediaEnergia = (energias.reduce((a,b) => a+b, 0) / energias.length).toFixed(1);
+    const maxTemp      = Math.max(...temps);
+    const minEnergia   = Math.min(...energias);
+    const comAlerta    = historico.filter(r => r.alertas.length > 0).length;
+    const falhasComm   = historico.filter(r => r.comm === 0).length;
+
+    el.innerHTML = `
+      <table>
+        <tr><th>Indicador</th><th>Valor</th><th>Observação</th></tr>
+        <tr>
+          <td>Temp. média</td>
+          <td>${mediaTemp} °C</td>
+          <td>${parseFloat(mediaTemp) > 80 ? 'Acima do limite' : 'Dentro do limite'}</td>
+        </tr>
+        <tr>
+          <td>Temp. máxima</td>
+          <td>${maxTemp} °C</td>
+          <td>${maxTemp > 80 ? 'Superaquecimento registrado' : 'OK'}</td>
+        </tr>
+        <tr>
+          <td>Energia média</td>
+          <td>${mediaEnergia} %</td>
+          <td>${parseFloat(mediaEnergia) < 20 ? 'Crítico' : 'OK'}</td>
+        </tr>
+        <tr>
+          <td>Energia mínima</td>
+          <td>${minEnergia.toFixed(1)} %</td>
+          <td>${minEnergia < 20 ? 'Abaixo do limite' : 'OK'}</td>
+        </tr>
+        <tr>
+          <td>Falhas de comunicação</td>
+          <td>${falhasComm}</td>
+          <td>${falhasComm > 0 ? 'Falhas detectadas' : 'Nenhuma'}</td>
+        </tr>
+        <tr>
+          <td>Leituras com alerta</td>
+          <td>${comAlerta} / ${historico.length}</td>
+          <td>${comAlerta > 0 ? 'Verificar' : 'Missão nominal'}</td>
+        </tr>
+      </table>
+    `;
+  }
+
+  function renderHistorico() {
+    const el = document.getElementById('historico-conteudo');
+    if (historico.length === 0) { el.innerHTML = '<p>Nenhuma leitura ainda.</p>'; return; }
+
+    const linhas = [...historico].reverse().map((r, i) => {
+      const num = historico.length - i;
+      const status = r.alertas.length === 0 ? 'NOMINAL' : r.alertas.join(', ');
+      return `<tr>
+        <td>${num}</td>
+        <td>${r.hora}</td>
+        <td>${r.temp} °C</td>
+        <td>${r.energia.toFixed(1)} %</td>
+        <td>${r.comm === 0 ? 'FALHA' : 'ATIVA'}</td>
+        <td>${status}</td>
+      </tr>`;
+    }).join('');
+
+    el.innerHTML = `
+      <table>
+        <thead>
+          <tr><th>#</th><th>Hora</th><th>Temp.</th><th>Energia</th><th>Comm.</th><th>Status</th></tr>
+        </thead>
+        <tbody>${linhas}</tbody>
+      </table>
+    `;
+  }
+
+  function encerrar() {
+    if (confirm('Deseja encerrar o sistema?')) {
+      document.body.innerHTML = '<h2 style="text-align:center;margin-top:80px;color: #ffffff"Sistema encerrado pelo operador.</h2>';
+    }
+  }
+
+  log('Sistema inicializado. Selecione uma opção no menu.', 'normal');
+</script>
+</body>
+</html>

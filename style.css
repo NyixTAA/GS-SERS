@@ -1,0 +1,128 @@
+body {
+    font-family: monospace;
+    max-width: 600px; 
+    height: 100vh;
+    width: 100vw;
+    margin: 30px auto; 
+    padding: 0 16px;
+    background-image: url('https://64.media.tumblr.com/a2ad65a327981dd82f681115d55ea3ab/147bfebdf112f180-2c/s400x600/888a1694494e22dce4c760f6b23c57dd936409b6.gifv');
+    background-repeat: no-repeat;
+    background-size: cover;
+    }
+
+.background {
+    position: absolute;
+    z-index: -1;
+    height: 60vh;
+    width: 50vw;
+}
+
+.principal {
+    background-color: white;
+    padding: 25px;
+    border-radius: 15px;
+}
+
+h1 {
+        text-align: center; 
+        border-bottom: 2px solid #000; 
+        padding-bottom: 8px;
+    }
+
+nav {
+        display: flex; 
+        gap: 8px; 
+        flex-wrap: wrap; 
+        margin: 16px 0; 
+    }
+
+nav button {
+        padding: 8px 14px; 
+        cursor: pointer; 
+        font-family: monospace; 
+    }
+
+.panel {
+        display: none; 
+    }
+
+.panel.ativo { 
+        display: block; 
+    }
+
+label { 
+        display: block; 
+        margin-top: 10px; 
+        font-weight: bold; 
+    }
+
+input, select { 
+        width: 100%; 
+        padding: 6px; 
+        margin-top: 4px; 
+        font-family: monospace; 
+        box-sizing: border-box; 
+    }
+
+button.enviar { 
+        margin-top: 14px; 
+        padding: 8px 20px; 
+        cursor: pointer; 
+        font-family: monospace; 
+    }
+
+table { 
+        width: 100%; 
+        border-collapse: collapse; 
+        margin-top: 10px; 
+    }
+
+th, td { 
+        border: 1px solid #999; 
+        padding: 6px 8px; 
+        text-align: left; 
+        font-size: .9rem; 
+    }
+
+th { 
+        background: #eee; 
+    }
+
+.alerta { 
+        background: #ffe0e0; 
+        border: 1px solid red;
+        padding: 8px; 
+        margin-top: 10px; 
+    }
+
+.ok { 
+        background: #e0ffe0; 
+        border: 1px solid green; 
+        padding: 8px; 
+        margin-top: 10px; 
+    }
+
+#log { 
+        background: #f5f5f5; 
+        border: 1px solid #ccc; 
+        padding: 10px; 
+        height: 140px; 
+        overflow-y: auto; 
+        font-size: .85rem; 
+    }
+
+#log p { 
+        margin: 2px 0; 
+    }
+
+.erro { 
+        color: red; 
+    }
+
+.aviso  { 
+        color: orange; 
+    }
+
+.normal { 
+        color: green; 
+    }
